@@ -1,0 +1,4 @@
+main: de.eternalwings.bukkit.sync.SyncPlugin
+author: kumpelblase2
+name: Sync
+version: 1.0

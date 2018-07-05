@@ -1,0 +1,7 @@
+server/*
+zookeeper/*
+build/*
+out/*
+.idea/*
+*.iml
+.gradle/*
