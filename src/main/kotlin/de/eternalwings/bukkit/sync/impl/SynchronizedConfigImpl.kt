@@ -4,21 +4,22 @@ import de.eternalwings.bukkit.sync.SynchronizedConfig
 import org.apache.curator.framework.CuratorFramework
 import org.bukkit.configuration.Configuration
 import java.util.function.BiConsumer
-import java.util.function.Consumer
 
-class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, private val originalConfiguration: Configuration) :
-        SynchronizedConfig, Configuration by originalConfiguration {
+class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, private val originalConfiguration: Configuration) : SynchronizedConfig,
+        Configuration by originalConfiguration {
 
     private var synchronizedKeys: Map<String, SyncedConfigurationKey<*>> = emptyMap()
 
-    override fun <T : Any> synchronizeKey(configurationKey: String, defaultValue: T, callback: BiConsumer<T?,T?>) {
+    override fun <T : Any> synchronizeKey(configurationKey: String, defaultValue: T, callback: BiConsumer<T?, T?>) {
         this.synchronizeKey(configurationKey, defaultValue, true, callback)
     }
 
     override fun <T : Any> synchronizeKey(configurationKey: String, defaultValue: T, autoPersist: Boolean, callback: BiConsumer<T?, T?>) {
         val configurationNode = SyncedConfigurationKey(curatorFramework, asZookeeperPath(configurationKey), defaultValue) {
             callback.accept(originalConfiguration.get(configurationKey) as T?, it)
-            originalConfiguration.set(configurationKey, it)
+            if (autoPersist) {
+                originalConfiguration.set(configurationKey, it)
+            }
         }
         synchronizedKeys += configurationKey to configurationNode
     }
