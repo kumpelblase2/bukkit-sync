@@ -10,12 +10,13 @@ class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, pri
 
     private var synchronizedKeys: Map<String, SyncedConfigurationKey<*>> = emptyMap()
 
-    override fun <T : Any> synchronizeKey(configurationKey: String, defaultValue: T, callback: BiConsumer<T?, T?>) {
-        this.synchronizeKey(configurationKey, defaultValue, true, callback)
+    override fun <T : Any> synchronizeKey(configurationKey: String, defaultValue: T?, type: Class<T>, callback: BiConsumer<T?, T?>) {
+        this.synchronizeKey(configurationKey, defaultValue, type, true, callback)
     }
 
-    override fun <T : Any> synchronizeKey(configurationKey: String, defaultValue: T, autoPersist: Boolean, callback: BiConsumer<T?, T?>) {
-        val configurationNode = SyncedConfigurationKey(curatorFramework, asZookeeperPath(configurationKey), defaultValue) {
+    override fun <T : Any> synchronizeKey(configurationKey: String, defaultValue: T?, type: Class<T>, autoPersist: Boolean,
+                                          callback: BiConsumer<T?, T?>) {
+        val configurationNode = SyncedConfigurationKey(curatorFramework, asZookeeperPath(configurationKey), type, defaultValue) {
             callback.accept(originalConfiguration.get(configurationKey) as T?, it)
             if (autoPersist) {
                 originalConfiguration.set(configurationKey, it)

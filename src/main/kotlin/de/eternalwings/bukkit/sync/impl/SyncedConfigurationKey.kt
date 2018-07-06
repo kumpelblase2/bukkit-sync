@@ -9,7 +9,7 @@ import org.apache.curator.framework.recipes.cache.NodeCacheListener
 import org.slf4j.LoggerFactory
 
 class SyncedConfigurationKey<T : Any>(private val curatorFramework: CuratorFramework, private val zookeeperPathString: String,
-                                      private val defaultValue: T, private val callback: (T?) -> Unit) {
+                                      private val type: Class<T>, private val defaultValue: T?, private val callback: (T?) -> Unit) {
 
     private val logger = LoggerFactory.getLogger(SynchronizedConfig::class.java)
     private val nodeCache = NodeCache(curatorFramework, zookeeperPathString)
