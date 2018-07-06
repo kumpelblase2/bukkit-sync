@@ -27,6 +27,11 @@ class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, pri
 
     override fun set(p0: String?, p1: Any?) {
         p0?.let {
+            val currentValue = this.get(p0)
+            if (currentValue == p1) {
+                return@let
+            }
+
             val syncedConfigurationKey = synchronizedKeys[it]
             if (syncedConfigurationKey != null) {
                 (syncedConfigurationKey as SyncedConfigurationKey<Any>).synchronizeValue(p1!!)
