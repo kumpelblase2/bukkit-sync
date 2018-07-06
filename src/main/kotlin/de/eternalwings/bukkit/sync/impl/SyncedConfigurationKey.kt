@@ -14,7 +14,7 @@ class SyncedConfigurationKey<T : Any>(private val curatorFramework: CuratorFrame
     private val logger = LoggerFactory.getLogger(SynchronizedConfig::class.java)
     private val nodeCache = NodeCache(curatorFramework, zookeeperPathString)
     private val gson = Gson()
-    private val type = defaultValue.javaClass
+    private var cachedValue: T? = null
 
     init {
         curatorFramework.checkExists().creatingParentsIfNeeded().inBackground { _, event ->
@@ -23,15 +23,16 @@ class SyncedConfigurationKey<T : Any>(private val curatorFramework: CuratorFrame
                     logger.info("Creating configuration at $zookeeperPathString because it didn't exist.")
                     curatorFramework.create().orSetData().inBackground().forPath(zookeeperPathString, deserialize(defaultValue))
                 } else {
-                    callback(serialize(curatorFramework.data.forPath(zookeeperPathString)))
+                    cachedValue = serialize(curatorFramework.data.forPath(zookeeperPathString))
+                    callback(cachedValue)
                 }
             }
         }.forPath(zookeeperPathString)
 
         nodeCache.listenable.addListener(NodeCacheListener {
             val data = nodeCache.currentData.data
-            val newValue = serialize(data)
-            callback(newValue)
+            cachedValue = serialize(data)
+            callback(cachedValue)
         })
 
         nodeCache.start(true)
@@ -39,10 +40,11 @@ class SyncedConfigurationKey<T : Any>(private val curatorFramework: CuratorFrame
 
     fun synchronizeValue(value: T?) {
         curatorFramework.setData().inBackground().forPath(zookeeperPathString, deserialize(value))
+        cachedValue = value
     }
 
     fun getCurrentValue(): T? {
-        return serialize(nodeCache.currentData.data)
+        return cachedValue
     }
 
     private fun serialize(data: ByteArray): T? {
