@@ -34,7 +34,7 @@ class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, pri
 
             val syncedConfigurationKey = synchronizedKeys[it]
             if (syncedConfigurationKey != null) {
-                (syncedConfigurationKey as SyncedConfigurationKey<Any>).synchronizeValue(p1!!)
+                (syncedConfigurationKey as SyncedConfigurationKey<Any>).synchronizeValue(value)
             } else {
                 originalConfiguration.set(p0, p1)
             }
