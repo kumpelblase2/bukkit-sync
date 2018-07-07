@@ -10,7 +10,12 @@ class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, pri
 
     private var synchronizedKeys: Map<String, SyncedConfigurationKey<*>> = emptyMap()
 
-    override fun <T : Any> synchronizeKey(configurationKey: String, defaultValue: T?, type: Class<T>, callback: BiConsumer<T?, T?>) {
+    override fun <T : Any> synchronizeKey(configurationKey: String, type: Class<T>, callback: BiConsumer<T?, T?>) {
+        this.synchronizeKey(configurationKey, originalConfiguration.get(configurationKey) as T?, type, callback)
+    }
+
+    override fun <T : Any> synchronizeKey(configurationKey: String, defaultValue: T?, type: Class<T>,
+                                          callback: BiConsumer<T?, T?>) {
         this.synchronizeKey(configurationKey, defaultValue, type, true, callback)
     }
 
