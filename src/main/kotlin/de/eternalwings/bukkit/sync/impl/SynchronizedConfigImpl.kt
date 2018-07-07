@@ -17,9 +17,12 @@ class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, pri
     override fun <T : Any> synchronizeKey(configurationKey: String, defaultValue: T?, type: Class<T>, autoPersist: Boolean,
                                           callback: BiConsumer<T?, T?>) {
         val configurationNode = SyncedConfigurationKey(curatorFramework, asZookeeperPath(configurationKey), type, defaultValue) {
-            callback.accept(originalConfiguration.get(configurationKey) as T?, it)
-            if (autoPersist) {
-                originalConfiguration.set(configurationKey, it)
+            val currentValue = originalConfiguration.get(configurationKey) as T?
+            if (currentValue != it) {
+                callback.accept(currentValue, it)
+                if (autoPersist) {
+                    originalConfiguration.set(configurationKey, it)
+                }
             }
         }
         synchronizedKeys += configurationKey to configurationNode
