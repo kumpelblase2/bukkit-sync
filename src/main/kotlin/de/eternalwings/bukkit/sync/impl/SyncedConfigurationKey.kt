@@ -48,10 +48,18 @@ class SyncedConfigurationKey<T : Any>(private val curatorFramework: CuratorFrame
     }
 
     private fun serialize(data: ByteArray): T? {
+        if (data.size == 1 && data[0] == 0.toByte()) {
+            return null
+        }
+
         return gson.fromJson(String(data), type)
     }
 
     private fun deserialize(value: T?): ByteArray {
+        if (value == null) {
+            return byteArrayOf(0)
+        }
+
         return gson.toJson(value).toByteArray()
     }
 }
