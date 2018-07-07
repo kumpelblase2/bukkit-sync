@@ -41,10 +41,10 @@ class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, pri
         }
     }
 
-    override fun get(p0: String?): Any? {
-        val key = p0 ?: return originalConfiguration.get(p0)
+    override fun get(givenKey: String?, default: Any?): Any? {
+        val key = givenKey ?: return originalConfiguration.get(givenKey, default)
         val syncedConfigurationKey = synchronizedKeys[key]
-        return syncedConfigurationKey?.getCurrentValue() ?: originalConfiguration.get(key)
+        return syncedConfigurationKey?.getCurrentValue() ?: default
     }
 
     private fun asZookeeperPath(configurationPath: String): String {
