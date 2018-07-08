@@ -1,12 +1,13 @@
 package de.eternalwings.bukkit.sync.impl
 
+import de.eternalwings.bukkit.sync.InstanceWatcher
 import de.eternalwings.bukkit.sync.SyncService
 import de.eternalwings.bukkit.sync.SynchronizedConfig
 import org.apache.curator.framework.CuratorFramework
 import org.bukkit.configuration.Configuration
 import org.bukkit.plugin.Plugin
 
-class SyncServiceImpl(private val zookeeper: CuratorFramework) : SyncService {
+class SyncServiceImpl(private val zookeeper: CuratorFramework, override val instanceWatcher: InstanceWatcher?) : SyncService {
     private var configurationForPluginsMap = emptyMap<String, List<SynchronizedConfig>>()
 
     override fun getSynchronizedConfig(configuration: Configuration, owner: Plugin, name: String): SynchronizedConfig {

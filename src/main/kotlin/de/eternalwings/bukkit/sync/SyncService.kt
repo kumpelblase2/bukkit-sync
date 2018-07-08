@@ -12,6 +12,8 @@ interface SyncService {
 
     fun getSynchronizedConfigurationsOf(plugin: Plugin): Collection<SynchronizedConfig>
 
+    val instanceWatcher: InstanceWatcher?
+
     companion object {
         const val DEFAULT_CONFIG_NAME = "" // Knowingly empty.
     }
