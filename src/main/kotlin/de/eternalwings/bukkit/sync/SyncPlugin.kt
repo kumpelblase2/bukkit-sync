@@ -13,21 +13,23 @@ import org.bukkit.plugin.ServicePriority.Normal
 import org.bukkit.plugin.java.JavaPlugin
 
 class SyncPlugin : JavaPlugin() {
-    private val zookeeperBuilder = CuratorFrameworkFactory.builder().namespace(NAMESPACE).retryPolicy(DEFAULT_RETRY_POLICY)
+    private val zookeeperBuilder = CuratorFrameworkFactory.builder().retryPolicy(DEFAULT_RETRY_POLICY)
     private lateinit var zookeeper: CuratorFramework
     private lateinit var serviceImpl: SyncServiceImpl
 
     override fun onEnable() {
         logger.info { "Connecting to zookeeper..." }
         config.addDefault(ZOOKEEPER_CONFIG_KEY, "127.0.0.1:2181")
-        val zookeeperConnection = this.config.getString(ZOOKEEPER_CONFIG_KEY)
-        zookeeper = createZookeeperClient(zookeeperConnection)
+        config.addDefault(NAMESPACE_CONFIG_KEY, NAMESPACE)
+        val zookeeperConnection = config.getString(ZOOKEEPER_CONFIG_KEY)
+        val namespace = config.getString(NAMESPACE_CONFIG_KEY)
+        zookeeper = createZookeeperClient(zookeeperConnection, namespace)
 
         initializeService()
     }
 
-    private fun createZookeeperClient(zookeeperConnection: String?): CuratorFramework {
-        val builder = zookeeperBuilder.connectString(zookeeperConnection)
+    private fun createZookeeperClient(zookeeperConnection: String?, namespace: String = NAMESPACE): CuratorFramework {
+        val builder = zookeeperBuilder.namespace(namespace).connectString(zookeeperConnection)
         val client = builder.build()
         client.unhandledErrorListenable.addListener(UnhandledErrorListener { message, e ->
             logger.severe(message)
@@ -50,7 +52,8 @@ class SyncPlugin : JavaPlugin() {
     }
 
     companion object {
-        const val NAMESPACE = "mcsync"
+        const val NAMESPACE = "minecraft"
+        const val NAMESPACE_CONFIG_KEY = "namespace"
         const val ZOOKEEPER_CONFIG_KEY = "zookeeper"
 
         var DEFAULT_RETRY_POLICY: RetryPolicy = ExponentialBackoffRetry(1000, 3)
