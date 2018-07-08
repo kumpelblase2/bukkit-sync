@@ -48,7 +48,7 @@ class SyncPlugin : JavaPlugin() {
                     logger.fine { "Instance information: $instance" }
                 })
                 onInstanceLost(Consumer { instance ->
-                    logger.info { "Lost server instance ${instance.name}" }
+                    logger.info { "Lost server instance ${instance.name}." }
                 })
                 onInstanceUpdated(Consumer { instance ->
                     logger.fine { "Instance ${instance.name} was reconfigured. Information: $instance" }
