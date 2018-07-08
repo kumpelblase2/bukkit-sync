@@ -13,8 +13,7 @@ Since this plugin uses Zookeeper to work, it needs to be running somewhere. By d
 `localhost:2181`. If zookeeper is not running on the same host, create a `config.yml` file in a folder called `Sync` inside the plugins directory 
 with the following content:
 ```yaml
-zookeeper:
-  ip: <zookeeperip>:<zookeeperport>
+zookeeper: <zookeeperip>:<zookeeperport>
 ```
 
 and replace the placeholders with the appropriate values.
@@ -32,8 +31,8 @@ create a synchronized version of your configuration and tell it to synchronize a
 class MyPlugin extends JavaPlugin {
     public void onEnable() {
         SyncService sync = this.getServer().getServicesManager().getRegistration(SyncService.class).getProvider();
-        SynchronizedConfig synchronizedConfig = sync.getSynchronizedConfig(this.getConfig());
-        synchronizedConfig.synchronizeKey("key1", "defaultValue", (oldValue, newValue) -> {
+        SynchronizedConfig synchronizedConfig = sync.getSynchronizedConfig(this.getConfig(), this);
+        synchronizedConfig.synchronizeKey("key1", "defaultValue", String.class, (oldValue, newValue) -> {
             System.out.println("Value changed from " + oldValue + " to " + newValue);
         });
     }
