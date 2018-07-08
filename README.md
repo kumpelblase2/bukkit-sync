@@ -47,6 +47,41 @@ the synchronized key values will be taken from zookeeper instead of from the loc
 Now upon server start it will save the default value to zookeeper (if it doesn't exist) and notify you about the value change. Now once the value 
 changes in zookeeper, for whatever reason, you will be notified and it will automatically be persisted to your local config.
 
+## Instance Discovery
+
+You can also use this to keep track of running instances. For this you need to add additional information to the plugin 
+configuration:
+
+```yaml
+announce_instance: true
+instance: Uber
+host: localhost:25565
+```
+
+Where `instance` is a globally unique name of the server instance and `host` is the host (+port) under which other instances 
+could access it. That may be an IP or a hostname, depending on what's possible. Now upon starting the server, the plugin will 
+register itself as an instance so other instances can see it. Instances will be visible in zookeeper under 
+`/minecraft/instances/<instance_name>`. Inside your plugin, you can listen on instance changes (new instance, instance lost, 
+instance changed) like this:
+
+```java
+class MyPlugin extends JavaPlugin {
+    public void onEnable() {
+        SyncService sync = this.getServer().getServicesManager().getRegistration(SyncService.class).getProvider();
+        InstanceWatcher watcher = sync.getInstanceWatcher();
+        watcher.onInstanceFound(instance -> {
+            this.getLogger().info("Found Instance:" + instance.getName());
+        });
+        
+        watcher.getAllInstances().forEach(instance -> {
+            this.getLogger().info("Instance Available: " + instance.getName());
+        });
+    }
+}
+```
+
+Each instance will provide you with its name, host(+port) and the list of plugins configured on that instance.
+
 ## Building
 
 Just run `gradle shadowJar` and copy the jar from `build/libs` into the plugins dir of your server.
