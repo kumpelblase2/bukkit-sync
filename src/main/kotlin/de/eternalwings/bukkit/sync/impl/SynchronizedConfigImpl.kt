@@ -5,10 +5,14 @@ import org.apache.curator.framework.CuratorFramework
 import org.bukkit.configuration.Configuration
 import java.util.function.BiConsumer
 
-class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, private val originalConfiguration: Configuration) : SynchronizedConfig,
+class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, private val originalConfiguration: Configuration,
+                             private val name: String, private val pluginName: String) : SynchronizedConfig,
         Configuration by originalConfiguration {
-
     private var synchronizedKeys: Map<String, SyncedConfigurationKey<*>> = emptyMap()
+
+    override fun getName(): String {
+        return name
+    }
 
     override fun <T : Any> synchronizeKey(configurationKey: String, type: Class<T>, callback: BiConsumer<T?, T?>) {
         this.synchronizeKey(configurationKey, originalConfiguration.get(configurationKey) as T?, type, callback)
@@ -33,10 +37,10 @@ class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, pri
         synchronizedKeys += configurationKey to configurationNode
     }
 
-    override fun set(p0: String?, p1: Any?) {
-        p0?.let {
-            val currentValue = this.get(p0)
-            if (currentValue == p1) {
+    override fun set(key: String?, value: Any?) {
+        key?.let {
+            val currentValue = this.get(key)
+            if (currentValue == value) {
                 return@let
             }
 
@@ -44,7 +48,7 @@ class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, pri
             if (syncedConfigurationKey != null) {
                 (syncedConfigurationKey as SyncedConfigurationKey<Any>).synchronizeValue(value)
             } else {
-                originalConfiguration.set(p0, p1)
+                originalConfiguration.set(key, value)
             }
         }
     }
@@ -56,6 +60,8 @@ class SynchronizedConfigImpl(private val curatorFramework: CuratorFramework, pri
     }
 
     private fun asZookeeperPath(configurationPath: String): String {
-        return "/" + configurationPath.replace(this.originalConfiguration.options().pathSeparator().toString(), "/")
+        val configName = if (name.isEmpty()) "DEFAULT" else name
+        val fullNamespace = "/" + listOf(pluginName, configName).joinToString("/") + "/"
+        return fullNamespace + configurationPath.replace(this.originalConfiguration.options().pathSeparator().toString(), "/")
     }
 }

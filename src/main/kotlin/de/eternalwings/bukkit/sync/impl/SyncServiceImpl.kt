@@ -4,9 +4,29 @@ import de.eternalwings.bukkit.sync.SyncService
 import de.eternalwings.bukkit.sync.SynchronizedConfig
 import org.apache.curator.framework.CuratorFramework
 import org.bukkit.configuration.Configuration
+import org.bukkit.plugin.Plugin
 
 class SyncServiceImpl(private val zookeeper: CuratorFramework) : SyncService {
-    override fun getSynchronizedConfig(configuration: Configuration): SynchronizedConfig {
-        return SynchronizedConfigImpl(zookeeper, configuration)
+    private var configurationForPluginsMap = emptyMap<String, List<SynchronizedConfig>>()
+
+    override fun getSynchronizedConfig(configuration: Configuration, owner: Plugin, name: String): SynchronizedConfig {
+        val configurationListForPlugin = configurationForPluginsMap[owner.name] ?: emptyList()
+        val existingConfig = configurationListForPlugin.find { it.name == name }
+        if (existingConfig != null) {
+            return existingConfig
+        }
+
+        val createdConfig = createSynchronizedConfig(configuration, owner, name)
+        configurationForPluginsMap += owner.name to (configurationListForPlugin + createdConfig)
+
+        return createdConfig
+    }
+
+    private fun createSynchronizedConfig(configuration: Configuration, owner: Plugin, name: String): SynchronizedConfig {
+        return SynchronizedConfigImpl(zookeeper, configuration, name, owner.name)
+    }
+
+    override fun getSynchronizedConfigurationsOf(plugin: Plugin): Collection<SynchronizedConfig> {
+        return configurationForPluginsMap[plugin.name] ?: emptyList()
     }
 }
