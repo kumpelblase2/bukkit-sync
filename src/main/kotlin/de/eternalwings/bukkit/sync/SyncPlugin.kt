@@ -9,15 +9,16 @@ import org.apache.curator.framework.state.ConnectionState.CONNECTED
 import org.apache.curator.framework.state.ConnectionState.LOST
 import org.apache.curator.framework.state.ConnectionStateListener
 import org.apache.curator.retry.ExponentialBackoffRetry
+import org.bukkit.event.Listener
 import org.bukkit.plugin.ServicePriority.Normal
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.function.Consumer
 
-class SyncPlugin : JavaPlugin() {
+class SyncPlugin : JavaPlugin(), Listener {
     private val zookeeperBuilder = CuratorFrameworkFactory.builder().retryPolicy(DEFAULT_RETRY_POLICY)
     private lateinit var zookeeper: CuratorFramework
     private lateinit var serviceImpl: SyncServiceImpl
-    private lateinit var instanceWatcher: InstanceWatcher
+    private var instanceWatcher: InstanceWatcher? = null
 
     private val shouldAnnounceInstance: Boolean
         get() = config.getBoolean(INSTANCE_ANNOUNCE_KEY)
@@ -42,7 +43,7 @@ class SyncPlugin : JavaPlugin() {
         zookeeper = createZookeeperClient(zookeeperConnection, namespace)
 
         if (shouldAnnounceInstance) {
-            instanceWatcher = InstanceWatcher(zookeeper, instanceData).apply {
+            val createWatcher = InstanceWatcher(zookeeper, instanceData).apply {
                 onInstanceFound(Consumer { instance ->
                     logger.info { "Found server instance ${instance.name}." }
                     logger.fine { "Instance information: $instance" }
@@ -55,6 +56,9 @@ class SyncPlugin : JavaPlugin() {
                 })
                 start()
             }
+
+            server.pluginManager.registerEvents(PluginChangeListener(createWatcher), this)
+            instanceWatcher = createWatcher
         }
         initializeService()
     }
