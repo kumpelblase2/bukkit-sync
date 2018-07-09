@@ -14,7 +14,7 @@ import org.bukkit.plugin.ServicePriority.Normal
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.function.Consumer
 
-class SyncPlugin : JavaPlugin(), Listener {
+class SyncPlugin : JavaPlugin() {
     private val zookeeperBuilder = CuratorFrameworkFactory.builder().retryPolicy(DEFAULT_RETRY_POLICY)
     private lateinit var zookeeper: CuratorFramework
     private lateinit var serviceImpl: SyncServiceImpl
