@@ -9,7 +9,7 @@ import org.apache.curator.framework.state.ConnectionState.CONNECTED
 import org.apache.curator.framework.state.ConnectionState.LOST
 import org.apache.curator.framework.state.ConnectionStateListener
 import org.apache.curator.retry.ExponentialBackoffRetry
-import org.bukkit.event.Listener
+import org.bukkit.Bukkit
 import org.bukkit.plugin.ServicePriority.Normal
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.function.Consumer
@@ -28,7 +28,8 @@ class SyncPlugin : JavaPlugin() {
             val pluginNames = server.pluginManager.plugins.map { it.name }
             val instanceName = config.getString(INSTANCE_NAME_CONFIG_KEY)
             val instanceHost = config.getString(INSTANCE_HOST_CONFIG_KEY)
-            return InstanceData(instanceName, pluginNames, instanceHost)
+            return InstanceData(instanceName, instanceHost, pluginNames, playerCount = Bukkit.getServer().onlinePlayers.size,
+                    maxPlayers = Bukkit.getServer().maxPlayers)
         }
 
     override fun onEnable() {
@@ -57,7 +58,7 @@ class SyncPlugin : JavaPlugin() {
                 start()
             }
 
-            server.pluginManager.registerEvents(PluginChangeListener(createWatcher), this)
+            server.pluginManager.registerEvents(InstanceDataUpdateListener(createWatcher), this)
             instanceWatcher = createWatcher
         }
         initializeService()
