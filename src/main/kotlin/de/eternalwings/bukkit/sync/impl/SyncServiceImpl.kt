@@ -3,6 +3,7 @@ package de.eternalwings.bukkit.sync.impl
 import de.eternalwings.bukkit.sync.InstanceWatcher
 import de.eternalwings.bukkit.sync.SyncService
 import de.eternalwings.bukkit.sync.SynchronizedConfig
+import de.eternalwings.bukkit.sync.SynchronizedStorage
 import org.apache.curator.framework.CuratorFramework
 import org.bukkit.configuration.Configuration
 import org.bukkit.plugin.Plugin
@@ -24,10 +25,25 @@ class SyncServiceImpl(private val zookeeper: CuratorFramework, override val inst
     }
 
     private fun createSynchronizedConfig(configuration: Configuration, owner: Plugin, name: String): SynchronizedConfig {
-        return SynchronizedConfigImpl(zookeeper, configuration, name, owner.name)
+        return SynchronizedConfigImpl(zookeeper, configuration, name) {
+            asZookeeperPath(it, owner.name, name, configuration.options().pathSeparator().toString())
+        }
+    }
+
+    override fun getSynchronizedStorage(owner: Plugin, name: String): SynchronizedStorage {
+        return SynchronizedStorageImpl(zookeeper) {
+            asZookeeperPath(it, owner.name, name)
+        }
     }
 
     override fun getSynchronizedConfigurationsOf(plugin: Plugin): Collection<SynchronizedConfig> {
         return configurationForPluginsMap[plugin.name] ?: emptyList()
+    }
+
+    private fun asZookeeperPath(configurationPath: String, pluginName: String, contextName: String,
+                                keySeparator: String = "."): String {
+        val configName = if (contextName.isEmpty()) "DEFAULT" else contextName
+        val fullNamespace = "/" + listOf(pluginName, configName).joinToString("/") + "/"
+        return fullNamespace + configurationPath.replace(keySeparator, "/")
     }
 }

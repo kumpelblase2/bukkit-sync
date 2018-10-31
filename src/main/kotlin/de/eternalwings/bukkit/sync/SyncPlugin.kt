@@ -12,6 +12,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 import org.bukkit.Bukkit
 import org.bukkit.plugin.ServicePriority.Normal
 import org.bukkit.plugin.java.JavaPlugin
+import java.util.function.BiConsumer
 import java.util.function.Consumer
 
 class SyncPlugin : JavaPlugin() {
@@ -28,8 +29,9 @@ class SyncPlugin : JavaPlugin() {
             val pluginNames = server.pluginManager.plugins.map { it.name }
             val instanceName = config.getString(INSTANCE_NAME_CONFIG_KEY)
             val instanceHost = config.getString(INSTANCE_HOST_CONFIG_KEY)
-            return InstanceData(instanceName, instanceHost, pluginNames, playerCount = Bukkit.getServer().onlinePlayers.size,
-                    maxPlayers = Bukkit.getServer().maxPlayers)
+            val onlinePlayerCount = Bukkit.getServer().onlinePlayers.size
+            val maxPlayerCount = Bukkit.getServer().maxPlayers
+            return InstanceData(instanceName, instanceHost, pluginNames, onlinePlayerCount, maxPlayerCount)
         }
 
     override fun onEnable() {
@@ -62,6 +64,11 @@ class SyncPlugin : JavaPlugin() {
             instanceWatcher = createWatcher
         }
         initializeService()
+
+        val synchronizedStorage = serviceImpl.getSynchronizedStorage(this, "data")
+        synchronizedStorage.synchronizeKey("hello.world", "Hello!", String::class.java, BiConsumer { old: String?, new: String? ->
+            logger.info("Old: $old, New: $new")
+        })
     }
 
     private fun createZookeeperClient(zookeeperConnection: String?, namespace: String = NAMESPACE): CuratorFramework {
@@ -72,10 +79,10 @@ class SyncPlugin : JavaPlugin() {
             e.printStackTrace()
         })
         client.connectionStateListenable.addListener(ConnectionStateListener { _, newState ->
-            if (newState == CONNECTED) {
-                logger.info { "Connected to zookeeper." }
-            } else if (newState == LOST) {
-                logger.warning { "Lost connection to zookeeper." }
+            when (newState) {
+                CONNECTED -> logger.info { "Connected to zookeeper." }
+                LOST -> logger.warning { "Lost connection to zookeeper." }
+                else -> logger.fine { "Zookeeper connection status changed to $newState." }
             }
         })
         client.start()

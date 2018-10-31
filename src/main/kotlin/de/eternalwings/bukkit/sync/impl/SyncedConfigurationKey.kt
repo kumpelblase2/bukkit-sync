@@ -2,6 +2,7 @@ package de.eternalwings.bukkit.sync.impl
 
 import com.google.gson.Gson
 import de.eternalwings.bukkit.sync.SynchronizedConfig
+import de.eternalwings.bukkit.sync.SynchronizedKey
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.CuratorEventType.EXISTS
 import org.apache.curator.framework.recipes.cache.NodeCache
@@ -10,7 +11,7 @@ import org.slf4j.LoggerFactory
 
 class SyncedConfigurationKey<T : Any>(private val curatorFramework: CuratorFramework, private val zookeeperPathString: String,
                                       private val type: Class<T>, private val defaultValue: T?,
-                                      private val callback: (T?) -> Unit) {
+                                      private val callback: (T?, T?) -> Unit) : SynchronizedKey<T> {
 
     private val logger = LoggerFactory.getLogger(SynchronizedConfig::class.java)
     private val nodeCache = NodeCache(curatorFramework, zookeeperPathString)
@@ -23,31 +24,33 @@ class SyncedConfigurationKey<T : Any>(private val curatorFramework: CuratorFrame
                 if (event.resultCode != 0) {
                     logger.info("Creating configuration at $zookeeperPathString because it didn't exist.")
                     curatorFramework.create().orSetData().inBackground().forPath(zookeeperPathString, deserialize(defaultValue))
+                    cachedValue = defaultValue
                 } else {
                     cachedValue = serialize(curatorFramework.data.forPath(zookeeperPathString))
                     if (cachedValue == null && defaultValue != null) {
                         synchronizeValue(defaultValue)
                     }
-                    callback(cachedValue)
+                    callback(defaultValue, cachedValue)
                 }
             }
         }.forPath(zookeeperPathString)
 
         nodeCache.listenable.addListener(NodeCacheListener {
             val data = nodeCache.currentData.data
+            val oldValue = cachedValue
             cachedValue = serialize(data)
-            callback(cachedValue)
+            callback(oldValue, cachedValue)
         })
 
         nodeCache.start(true)
     }
 
-    fun synchronizeValue(value: T?) {
+    override fun synchronizeValue(value: T?) {
         curatorFramework.setData().inBackground().forPath(zookeeperPathString, deserialize(value))
         cachedValue = value
     }
 
-    fun getCurrentValue(): T? {
+    override fun getCurrentValue(): T? {
         return cachedValue
     }
 

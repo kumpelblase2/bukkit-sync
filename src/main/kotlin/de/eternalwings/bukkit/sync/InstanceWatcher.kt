@@ -65,8 +65,8 @@ class InstanceWatcher(private val zookeeper: CuratorFramework, val thisInstance:
         }
     }
 
-    fun getDataForInstance(name: String): InstanceData? {
-        val data = this.membership.currentMembers[name] ?: return null
+    operator fun get(name: String): InstanceData? {
+        val data = membership.currentMembers[name] ?: return null
         return deserialize(data)
     }
 
