@@ -25,13 +25,13 @@ class SyncServiceImpl(private val zookeeper: CuratorFramework, override val inst
     }
 
     private fun createSynchronizedConfig(configuration: Configuration, owner: Plugin, name: String): SynchronizedConfig {
-        return SynchronizedConfigImpl(zookeeper, configuration, name) {
+        return SynchronizedConfigImpl(zookeeper, configuration, owner, name) {
             asZookeeperPath(it, owner.name, name, configuration.options().pathSeparator().toString())
         }
     }
 
     override fun getSynchronizedStorage(owner: Plugin, name: String): SynchronizedStorage {
-        return SynchronizedStorageImpl(zookeeper) {
+        return SynchronizedStorageImpl(zookeeper, owner, name) {
             asZookeeperPath(it, owner.name, name)
         }
     }
