@@ -5,7 +5,8 @@ import de.eternalwings.bukkit.sync.SynchronizedStorage
 import org.apache.curator.framework.CuratorFramework
 
 abstract class SynchronizedKeyCollection(private val curatorFramework: CuratorFramework,
-                                         private val zkPathProvider: (String) -> String) : SynchronizedStorage {
+                                         private val zkPathProvider: (String) -> String) :
+        SynchronizedStorage {
     override fun getSynchronizedKeys(): Map<String, SynchronizedKey<*>> {
         return keyMap
     }

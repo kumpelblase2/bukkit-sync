@@ -1,0 +1,14 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+}
+
+dependencies {
+    compile project(':sync-api')
+    compile group: 'org.apache.curator', name: 'curator-framework', version: '4.0.1'
+    compile group: 'org.apache.curator', name: 'curator-recipes', version: '4.0.1'
+}
+
+task deployToServer(dependsOn: shadowJar, type: Copy) {
+    from file("$buildDir/libs/")
+    into file("$projectDir/../server/plugins/")
+}

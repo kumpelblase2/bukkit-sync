@@ -7,5 +7,5 @@ interface SynchronizedStorage {
 
     fun <T : Any> synchronizeKey(key: String, defaultValue: T?, type: Class<T>, callback: BiConsumer<T?, T?>): SynchronizedKey<T>
 
-    fun getSynchronizedKeys(): Map<String,SynchronizedKey<*>>
+    fun getSynchronizedKeys(): Map<String, SynchronizedKey<*>>
 }

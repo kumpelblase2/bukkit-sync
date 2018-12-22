@@ -11,7 +11,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener
 import org.apache.curator.framework.recipes.nodes.GroupMember
 import java.util.function.Consumer
 
-class InstanceWatcher(private val zookeeper: CuratorFramework, val thisInstance: InstanceData) {
+class InstanceWatcherImpl(private val zookeeper: CuratorFramework, val thisInstance: InstanceData) : InstanceWatcher {
 
     private val membership: GroupMember =
             GroupMember(zookeeper, SyncPlugin.INSTANCES_PATH, thisInstance.name, serialize(thisInstance))
@@ -22,13 +22,13 @@ class InstanceWatcher(private val zookeeper: CuratorFramework, val thisInstance:
     private var onInstanceLost: List<Consumer<InstanceData>> = emptyList()
     private var onInstanceUpdated: List<Consumer<InstanceData>> = emptyList()
 
-    val allInstances: List<InstanceData>
+    override val allInstances: List<InstanceData>
         get() {
             val instances = membership.currentMembers.values
             return instances.map { deserialize(it) }
         }
 
-    fun start() {
+    override fun start() {
         membership.start()
         pathChildrenCache.start(BUILD_INITIAL_CACHE)
         pathChildrenCache.listenable.addListener(PathChildrenCacheListener { client, event ->
@@ -42,19 +42,19 @@ class InstanceWatcher(private val zookeeper: CuratorFramework, val thisInstance:
         })
     }
 
-    fun update() {
+    override fun update() {
         membership.setThisData(serialize(thisInstance))
     }
 
-    fun onInstanceFound(consumer: Consumer<InstanceData>) {
+    override fun onInstanceFound(consumer: Consumer<InstanceData>) {
         onInstanceFind += consumer
     }
 
-    fun onInstanceLost(consumer: Consumer<InstanceData>) {
+    override fun onInstanceLost(consumer: Consumer<InstanceData>) {
         onInstanceLost += consumer
     }
 
-    fun onInstanceUpdated(consumer: Consumer<InstanceData>) {
+    override fun onInstanceUpdated(consumer: Consumer<InstanceData>) {
         onInstanceUpdated += consumer
     }
 
@@ -65,7 +65,7 @@ class InstanceWatcher(private val zookeeper: CuratorFramework, val thisInstance:
         }
     }
 
-    operator fun get(name: String): InstanceData? {
+    override operator fun get(name: String): InstanceData? {
         val data = membership.currentMembers[name] ?: return null
         return deserialize(data)
     }

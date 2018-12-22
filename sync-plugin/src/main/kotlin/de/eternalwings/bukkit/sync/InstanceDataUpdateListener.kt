@@ -8,7 +8,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.server.PluginDisableEvent
 import org.bukkit.event.server.PluginEnableEvent
 
-class InstanceDataUpdateListener(private val instanceWatcher: InstanceWatcher) : Listener {
+class InstanceDataUpdateListener(private val instanceWatcher: InstanceWatcherImpl) : Listener {
     @EventHandler
     fun onPluginEnabled(event: PluginEnableEvent) {
         refreshPluginsForThisInstance()

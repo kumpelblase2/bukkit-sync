@@ -12,14 +12,13 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 import org.bukkit.Bukkit
 import org.bukkit.plugin.ServicePriority.Normal
 import org.bukkit.plugin.java.JavaPlugin
-import java.util.function.BiConsumer
 import java.util.function.Consumer
 
 class SyncPlugin : JavaPlugin() {
     private val zookeeperBuilder = CuratorFrameworkFactory.builder().retryPolicy(DEFAULT_RETRY_POLICY)
     private lateinit var zookeeper: CuratorFramework
     private lateinit var serviceImpl: SyncServiceImpl
-    private var instanceWatcher: InstanceWatcher? = null
+    private var instanceWatcher: InstanceWatcherImpl? = null
 
     private val shouldAnnounceInstance: Boolean
         get() = config.getBoolean(INSTANCE_ANNOUNCE_KEY)
@@ -46,7 +45,7 @@ class SyncPlugin : JavaPlugin() {
         zookeeper = createZookeeperClient(zookeeperConnection, namespace)
 
         if (shouldAnnounceInstance) {
-            val createWatcher = InstanceWatcher(zookeeper, instanceData).apply {
+            val createWatcher = InstanceWatcherImpl(zookeeper, instanceData).apply {
                 onInstanceFound(Consumer { instance ->
                     logger.info { "Found server instance ${instance.name}." }
                     logger.fine { "Instance information: $instance" }
@@ -64,11 +63,6 @@ class SyncPlugin : JavaPlugin() {
             instanceWatcher = createWatcher
         }
         initializeService()
-
-        val synchronizedStorage = serviceImpl.getSynchronizedStorage(this, "data")
-        synchronizedStorage.synchronizeKey("hello.world", "Hello!", String::class.java, BiConsumer { old: String?, new: String? ->
-            logger.info("Old: $old, New: $new")
-        })
     }
 
     private fun createZookeeperClient(zookeeperConnection: String?, namespace: String = NAMESPACE): CuratorFramework {
