@@ -1,6 +1,7 @@
 package de.eternalwings.bukkit.sync.impl
 
 import de.eternalwings.bukkit.sync.InstanceWatcher
+import de.eternalwings.bukkit.sync.QueueManager
 import de.eternalwings.bukkit.sync.SyncService
 import de.eternalwings.bukkit.sync.SynchronizedConfig
 import de.eternalwings.bukkit.sync.SynchronizedStorage
@@ -39,6 +40,8 @@ class SyncServiceImpl(private val zookeeper: CuratorFramework, override val inst
     override fun getSynchronizedConfigurationsOf(plugin: Plugin): Collection<SynchronizedConfig> {
         return configurationForPluginsMap[plugin.name] ?: emptyList()
     }
+
+    override fun getQueueManager(owner: Plugin): QueueManager = QueueManagerImpl(owner, this.zookeeper)
 
     private fun asZookeeperPath(configurationPath: String, pluginName: String, contextName: String,
                                 keySeparator: String = "."): String {

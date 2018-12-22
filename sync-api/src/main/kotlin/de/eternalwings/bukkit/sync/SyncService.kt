@@ -14,6 +14,8 @@ interface SyncService {
 
     fun getSynchronizedStorage(owner: Plugin, name: String): SynchronizedStorage
 
+    fun getQueueManager(owner: Plugin): QueueManager
+
     val instanceWatcher: InstanceWatcher?
 
     companion object {
