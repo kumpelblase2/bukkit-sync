@@ -1,0 +1,81 @@
+plugins {
+    id "com.jfrog.bintray" version "1.8.4"
+    id 'maven-publish'
+    id "java"
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+javadoc.failOnError = false
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+javadoc {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+publishing {
+    publications {
+        mavenPublication(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            groupId 'de.eternalwings.bukkit'
+            artifactId 'sync-api'
+            version '0.1.0'
+
+            pom {
+                name = 'Bukkit Sync API'
+                description = 'API for the Sync Bukkit plugin to allow for synchronizing settings using zookeeper'
+                url = 'https://github.com/kumpelblase2/bukkit-sync'
+                licenses {
+                    license {
+                        name = "MIT"
+                        url = "https://github.com/kumpelblase2/bukkit-sync/blob/master/LICENSE"
+                        distribution = "repo"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "kumpelblase2"
+                        name = "Tim Hagemann"
+                        email = "tim+github@eternalwings.de"
+                    }
+                }
+
+                scm {
+                    url = "https://github.com/kumpelblase2/bukkit-sync"
+                }
+            }
+        }
+    }
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_APIKEY')
+    publications = ['mavenPublication']
+
+    pkg {
+        repo = 'Libraries'
+        name = 'bukkit-sync-api'
+        licenses = ['MIT']
+        vcsUrl = 'https://github.com/kumpelblase2/bukkit-sync.git'
+        version {
+            name = '0.1.0'
+            released = new Date()
+        }
+    }
+}

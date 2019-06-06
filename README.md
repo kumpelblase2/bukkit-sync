@@ -7,6 +7,24 @@ It won't synchronize _all_ configuration settings, only the ones specifically co
 
 Please note that I'm not actually using this plugin and just did it for fun. I may or may not keep working on this.
 
+## Add as dependency
+
+To add the library as a dependency, you can include it in your project using this repo url: `https://dl.bintray.com/kumpelblase2/Libraries`
+So for gradle, this would look like this:
+
+```groovy
+repositories {
+    maven { url 'https://dl.bintray.com/kumpelblase2/Libraries' }
+}
+```
+
+And use the library like this:
+```groovy
+dependencies {
+    compile 'de.eternalwings.bukkit:sync-api:1.0.0'
+}
+```
+
 ## Setup
 
 Since this plugin uses Zookeeper to work, it needs to be running somewhere. By default the plugin will try to connect to zookeeper on 
