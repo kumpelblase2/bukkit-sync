@@ -1,4 +1,27 @@
 package de.eternalwings.bukkit.sync
 
-data class InstanceData(var name: String, var host: String, var plugins: List<String> = emptyList(), var playerCount: Int = 0,
-                        var maxPlayers: Int = 1)
+/**
+ * Represents data in the store for this instance.
+ */
+data class InstanceData(
+        /**
+         * The name of this instance.
+         */
+        var name: String,
+        /**
+         * The host configured in the configuration for this instance.
+         */
+        var host: String,
+        /**
+         * List of enabled plugin names of the instance.
+         */
+        var plugins: List<String> = emptyList(),
+        /**
+         * The current amount of players on the instace.
+         */
+        var playerCount: Int = 0,
+        /**
+         * The maximum amount of allowed players on the instance.
+         */
+        var maxPlayers: Int = 1
+)
