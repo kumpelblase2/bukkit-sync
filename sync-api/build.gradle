@@ -1,5 +1,6 @@
 plugins {
     id "com.jfrog.bintray" version "1.8.4"
+    id "org.jetbrains.dokka" version "0.9.17"
     id 'maven-publish'
     id "java"
 }
@@ -10,15 +11,14 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 }
 
 javadoc.failOnError = false
-task javadocJar(type: Jar, dependsOn: javadoc) {
+task javadocJar(type: Jar, dependsOn: dokka) {
     archiveClassifier = 'javadoc'
-    from javadoc.destinationDir
+    from tasks.dokka
 }
 
-javadoc {
-    if (JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
-    }
+tasks.dokka {
+    outputFormat = "html"
+    outputDirectory = "$buildDir/javadoc"
 }
 
 artifacts {
